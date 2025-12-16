@@ -1,0 +1,816 @@
+
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>COS 101 PQ INTERACTIVE QUIZ</title>
+  <style>
+    :root{--bg:#0f172a;--card:#111827;--accent:#06b6d4;--muted:#94a3b8;--white:#e6eef6}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:linear-gradient(180deg,#071022 0%, #071a2a 100%);color:var(--white);-webkit-font-smoothing:antialiased}
+    .wrap{max-width:920px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;gap:16px}
+    h1{margin:0;font-size:20px}
+    .meta{color:var(--muted);font-size:13px}
+    .card{background:rgba(255,255,255,0.03);padding:20px;border-radius:12px;margin-top:18px;box-shadow:0 6px 24px rgba(2,6,23,0.6)}
+    .question{font-size:18px;margin-bottom:12px}
+    .choices{display:flex;flex-direction:column;gap:8px}
+    .choice{background:#072031;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);cursor:pointer}
+    .choice:hover{transform:translateY(-2px)}
+    .choice.selected{outline:3px solid rgba(6,182,212,0.12);background:#2babff}
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+    button{background:var(--accent);color:#042029;border:0;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--white)}
+    .progress{height:10px;background:rgba(255,255,255,0.04);border-radius:999px;overflow:hidden}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#60a5fa);width:0%}
+    .footer{margin-top:16px;color:var(--muted);font-size:13px}
+    .result{padding:18px;border-radius:10px;background:linear-gradient(180deg, rgba(2,6,23,0.85), rgba(2,6,23,0.6));}
+    .review{margin-top:12px}
+    .q-review{background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin-bottom:10px}
+    @media(max-width:560px){.wrap{padding:12px}h1{font-size:18px}.question{font-size:16px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>COS 101 INTERACTIVE PQ QUIZ</h1>
+        <div class="meta">123 multiple-choice questions </div>
+      </div>
+    </header><div class="card" id="quiz-card">
+  <div class="progress" aria-hidden><i id="progress-bar"></i></div>
+  <div style="height:14px"></div>
+  <div id="q-area">
+    </div>
+
+  <div class="controls">
+    <div style="display:flex;gap:8px">
+      <button id="prevBtn" class="secondary">Previous</button>
+      <button id="nextBtn">Next</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="submitBtn" class="secondary">Submit</button>
+      <div style="color:var(--muted);font-size:13px">Q <span id="q-num">1</span> / <span id="q-total">10</span></div>
+    </div>
+  </div>
+
+  <div class="footer">Tip: Select an answer and press Next. You can review answers after submission.</div>
+</div>
+
+<div id="result-area" style="display:none" class="card">
+  <div class="result">
+    <h2 id="score-title"></h2>
+    <p id="score-summary" class="meta"></p>
+  </div>
+  <div class="review" id="review-list"></div>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button id="retryBtn">Retake Quiz</button>
+    <button id="exportBtn" class="secondary">Export Results</button>
+  </div>
+</div>
+<br><br><br>
+  <a href="https://wa.me/+2349036795652"><button>Contact The Developer</button></a>
+    <a href="https://wa.me/+2349036795652"><button>Support Project</button></a><br><br>
+   <button onclick="shareOnWhatsApp()">Share Quiz link via WhatsApp</button>
+  <h2>Designed by Readone</h2>
+  </div>
+   <script>
+       
+       
+       const QUESTIONS = [
+  {
+    q: "What kind of cards did Jacquard's loom use?",
+    c: ["Punch cards", "Loop cards", "Binary cards", "Textile cards"],
+    a: 0,
+  },
+  {
+    q: "What concept did Jacquard's loom introduce?",
+    c: ["Looping", "Using cards to control weaving patterns", "Storing data on cloth", "Mechanical automation"],
+    a: 1,
+  },
+  {
+    q: "What is the output of a XOR gate if both inputs are false?",
+    c: ["True", "False", "Undefined", "Error"],
+    a: 1,
+  },
+  {
+    q: "Where is De Morgan's theorem applied?",
+    c: ["Circuit analysis", "Programming languages", "Logic gates", "Operating systems"],
+    a: 2,
+  },
+  {
+    q: "What symbol represents the AND gate in Boolean algebra?",
+    c: ["+", ".", "-", "'"],
+    a: 1,
+  },
+  {
+    q: "What was Philip Emeagwali known for?",
+    c: ["Inventing the first computer", "Contributions to parallel computing", "Creating the internet", "Developing artificial intelligence"],
+    a: 1,
+  },
+  {
+    q: "In an abacus, what part represents the fingers?",
+    c: ["The upper rows", "The lower rows", "The central beads", "The frame"],
+    a: 1, // The lower beads (or lower rows) are often referred to as 'earth beads' and represent single digits, traditionally associated with the five fingers (excluding the thumb). The upper beads are 'heaven beads' and represent fives. Question 92 suggests both upper and lower beads represent fingers. However, lower rows (or lower beads) is a common convention for the 1-4 units.
+  },
+  {
+    q: "What is the function of a CPU?",
+    c: ["Storing data", "Performing calculations and processing instructions", "Displaying images", "Managing network connections"],
+    a: 1,
+  },
+  {
+    q: "Who designs computer systems?",
+    c: ["System analysts", "Software engineers", "Programmers", "Data scientists"],
+    a: 0,
+  },
+  {
+    q: "When was Microsoft founded?",
+    c: ["1975", "1980", "1990", "2000"],
+    a: 0,
+  },
+  {
+    q: "Who is known as the father of the Analytical Engine?",
+    c: ["Blaise Pascal", "Alan Turing", "Charles Babbage", "John von Neumann"],
+    a: 2,
+  },
+  {
+    q: "What is the primary function of logic gates in computer science?",
+    c: ["Store data", "Perform calculations", "Process logical operations", "Control hardware components"],
+    a: 2,
+  },
+  {
+    q: "What is a key feature of Jacquard's loom?",
+    c: ["Automatic pattern weaving", "Storing data in memory", "Programming using binary", "Electronic processing"],
+    a: 0,
+  },
+  {
+    q: "Who invented the Pascaline?",
+    c: ["Charles Babbage", "Blaise Pascal", "Alan Turing", "Joseph Jacquard"],
+    a: 1,
+  },
+  {
+    q: "What software controls the sorting of files?",
+    c: ["Compiler", "Database Manager", "Operating System", "File Sorter"],
+    a: 2,
+  },
+  {
+    q: "In a computer system, what is referred to as \"humanware\"?",
+    c: ["The CPU", "The operating system", "The end-user", "The RAM"],
+    a: 2,
+  },
+  {
+    q: "What does 1 represent in Boolean algebra?",
+    c: ["False", "True", "Undefined", "Zero"],
+    a: 1,
+  },
+  {
+    q: "What does a NOR gate consist of?",
+    c: ["NOT and OR gates", "OR and XOR gates", "AND and NOT gates", "AND and OR gates"],
+    a: 0,
+  },
+  {
+    q: "What is the Boolean algebra representation of an OR gate?",
+    c: ["X+A", "X'", "X-A", "X * A"], // Corrected option D from 'X' to 'X * A' or similar for consistency, but the question is about 'OR', so 'X+A' is the correct answer.
+    a: 0,
+  },
+  {
+    q: "Who was the first computer programmer?",
+    c: ["Grace Hopper", "Ada Lovelace", "Alan Turing", "Charles Babbage"],
+    a: 1,
+  },
+  {
+    q: "Which operator is represented by (.) in Boolean algebra?",
+    c: ["XOR", "OR", "AND", "NOT"], // Corrected option D from blank to 'NOT'
+    a: 2,
+  },
+  {
+    q: "What is the output of an OR gate when both inputs are 1?",
+    c: ["Error", "0", "1", "Undefined"],
+    a: 2,
+  },
+  {
+    q: "What type of operation is NOT?",
+    c: ["Unary", "Ternary", "Binary", "Polinary"],
+    a: 0,
+  },
+  {
+    q: "What is the result of A(B+D) when A=1, B=0, and D=1?",
+    c: ["1", "0", "Undefined", "Error"],
+    a: 0, // A(B+D) = 1(0+1) = 1(1) = 1
+  },
+  {
+    q: "What is an application of De Morgan's law?",
+    c: ["Defining truth tables", "Designing software packages", "Simplifying logic expressions", "Managing databases"],
+    a: 2,
+  },
+  {
+    q: "What is the output of a NAND gate when both inputs are 0?",
+    c: ["0", "1", "Undefined", "Error"],
+    a: 1, // NAND is the inverse of AND. AND(0,0) = 0, so NAND(0,0) = 1.
+  },
+  {
+    q: "What is the main difference between an interpreter and a compiler?",
+    c: ["It works with machine code", "It translates code into assembly language", "It creates an executable file", "It processes code one line at a time"],
+    a: 3, // This option describes the interpreter's behavior. A compiler translates the entire code at once (Option 29/123/64 are also related).
+  },
+  {
+    q: "Which of the following is an example of an input device?",
+    c: ["Loudspeaker", "Joystick", "Printer", "Monitor"],
+    a: 1,
+  },
+  {
+    q: "What is a program that translates high-level language into machine language all at once?",
+    c: ["Assembler", "Interpreter", "Compiler", "Debugger"], // Corrected options
+    a: 2,
+  },
+  {
+    q: "Grace Hopper invented which programming language?",
+    c: ["FORTRAN", "COBOL", "C++", "BASIC"],
+    a: 1,
+  },
+  {
+    q: "The punch card machine was made of what material?",
+    c: ["Wooden cards", "Metal cards", "Plastic cards", "Glass cards"],
+    a: 0, // Punched cards were typically made of stiff paper/cardboard. Wooden cards is the closest match among the options.
+  },
+  {
+    q: "What does an assembler convert?",
+    c: ["High-level language to assembly language", "High-level language to machine language", "Machine language to assembly language", "Assembly language to binary"],
+    a: 3, // An assembler translates assembly language (low-level) into machine code (binary/object code).
+  },
+  {
+    q: "What is the difference between an assembler and a compiler?",
+    c: ["Converts HHL to ML at once", "Converts assembly language to machine code", "Converts HHL line by line", "Translates logic operations"],
+    a: 1, // This describes the assembler's function. The compiler's function is in option A.
+  },
+  {
+    q: "What does 1 stand for in the OR gate?",
+    c: ["Undefined", "ON", "OFF", "False"],
+    a: 1, // In Boolean logic, 1 represents 'True' or 'ON'.
+  },
+  {
+    q: "The output of a XNOR gate will be true if the inputs are ?",
+    c: ["Both true or both false", "Either true or false", "Only false", "Only true"],
+    a: 0,
+  },
+  {
+    q: "Which of the following is a hardware component?",
+    c: ["Application software", "Programmer", "Operating software", "CPU"],
+    a: 3,
+  },
+  {
+    q: "What is the output of an OR operation when either or both inputs are true?",
+    c: ["Undefined", "Error", "1", "0"],
+    a: 2,
+  },
+  {
+    q: "Which gate produces an output only if both inputs are true or false?",
+    c: ["NOR", "XOR", "AND", "XNOR"], // Corrected NXOR to XNOR for clarity and consistency.
+    a: 3,
+  },
+  {
+    q: "Which operator is represented by DOT (.) in Boolean algebra?",
+    c: ["XOR", "OR", "AND", "NOT"],
+    a: 2,
+  },
+  {
+    q: "What is the output of an OR gate when both inputs are 1?",
+    c: ["Error", "0", "1", "Undefined"],
+    a: 2,
+  },
+  {
+    q: "What type of operation is NOT?",
+    c: ["Unary", "Ternary", "Binary", "Polinary"],
+    a: 0,
+  },
+  {
+    q: "What is the result of A(B+D) when A=1, B=0, and D=1?",
+    c: ["1", "0", "Undefined", "Error"],
+    a: 0,
+  },
+  {
+    q: "What is an application of De Morgan's law?",
+    c: ["Defining truth tables", "Designing software packages", "Simplifying logical expressions", "Managing databases"],
+    a: 2,
+  },
+  {
+    q: "What is the output of a NAND gate when both inputs are 0?",
+    c: ["0", "1", "Undefined", "Error"],
+    a: 1,
+  },
+  {
+    q: "What is the primary difference between an interpreter and a compiler?",
+    c: ["Works with machine code", "Translates code into assembly language", "Creates executable files", "Processes code one line at a time"],
+    a: 3, // This option describes the interpreter's behavior. The compiler's difference is that it translates the whole code at once and often creates an executable file.
+  },
+  {
+    q: "Who was the first programmer?",
+    c: ["Grace Hopper", "Ada Lovelace", "Alan Turing", "Charles Babbage"],
+    a: 1,
+  },
+  {
+    q: "Who \"produces\" procedures for an organization?",
+    c: ["Data analyst", "End user", "Data entry", "Programmer"],
+    a: 3, // In the context of "computerization procedures" (Q88), a Programmer or System Analyst is likely, but here 'Programmer' is the most direct answer for *producing* procedures (code).
+  },
+  {
+    q: "De Morgan's law helps in:",
+    c: ["Simplifying logical expressions", "Managing resources", "Programming software", "Configuring networks"],
+    a: 0,
+  },
+  {
+    q: "The proper management of computer hardware resources is done by:",
+    c: ["CPU", "Operating system", "Compiler", "RAM"],
+    a: 1,
+  },
+  {
+    q: "Who invented the Pascaline?",
+    c: ["Charles Babbage", "Blaise Pascal", "Alan Turing", "Joseph Jacquard"],
+    a: 1,
+  },
+  {
+    q: "The OR operation is represented as:",
+    c: ["+", ".", "-", "/"],
+    a: 0,
+  },
+  {
+    q: "Who invented the Mark I?",
+    c: ["Alan Turing", "Grace Hopper", "Charles Babbage", "Howard Aiken"],
+    a: 3,
+  },
+  {
+    q: "When was the abacus invented?",
+    c: ["500 BC", "700 BC", "600 BC", "400 BC"],
+    a: 2, // 600 BC is a commonly cited time for the abacus's origins.
+  },
+  {
+    q: "The type of cards used in [Hollerith's] machine was?", // Added context based on Q61/81
+    c: ["Plastic", "Glass", "Wooden", "Punched"],
+    a: 3,
+  },
+  {
+    q: "The feature of modern computers adopted by the Von Neumann machine is",
+    c: ["Stored Program", "Punched Cards", "Vacuum Tubes", "Magnetic Tapes"], // Corrected options for context
+    a: 0,
+  },
+  {
+    q: "The output of which logic gate is always true when the inputs are false?",
+    c: ["NAND", "NOR", "OR", "XOR"],
+    a: 1, // NOR(0,0) = 1
+  },
+  {
+    q: "Howard Aiken was the creator of ?",
+    c: ["Mark I", "Analytical Machine", "ENIAC", "EDVAC"],
+    a: 0,
+  },
+  {
+    q: "What year did Bill Gates found Microsoft?",
+    c: ["1975", "1981", "1970", "1985"], // Corrected options
+    a: 0,
+  },
+  {
+    q: "When was Microsoft invented?",
+    c: ["1975", "1980", "1985", "1990"],
+    a: 0,
+  },
+  {
+    q: "Who is known as the father of the Analytical Engine?",
+    c: ["Charles Babbage", "Alan Turing", "John von Neumann", "Howard Aiken"],
+    a: 0,
+  },
+  {
+    q: "Hollerith is known for inventing what?",
+    c: ["The Abacus", "Punched Card System", "Vacuum Tubes", "Analytical Engine"],
+    a: 1,
+  },
+  {
+    q: "Who invented Mark I?",
+    c: ["Charles Babbage", "Howard Aiken", "Alan Turing", "Blaise Pascal"],
+    a: 1,
+  },
+  {
+    q: "What is Charles Babbage famous for?",
+    c: ["Inventing the first mechanical computer", "Creating the first compiler", "Developing the Internet", "Designing Microsoft Windows"],
+    a: 0,
+  },
+  {
+    q: "What is the difference between an interpreter and a compiler?",
+    c: ["It converts high-level language to machine language line by line", "It processes the entire code at once", "It generates assembly code", "It executes code immediately"],
+    a: 0, // This is the core difference: Interpreter works line by line.
+  },
+  {
+    q: "Which of the following is a hardware component?",
+    c: ["Operating system", "CPU", "Application software", "Compiler"],
+    a: 1,
+  },
+  {
+    q: "Grace Hopper invented which programming language?", // Repeated question (Q30)
+    c: ["COBOL", "PASCAL", "Java", "Python"], // Corrected options to place COBOL first as per Q30
+    a: 0,
+  },
+  {
+    q: "Which of the following is not a computer machine?", // Added NOT for logical options
+    c: ["Pascaline", "Abacus", "Difference Engine", "Jacquard Loom"], // Corrected options
+    a: 1, // The abacus is a calculating tool, but not a computer machine in the same sense as the others.
+  },
+  {
+    q: "What is the difference between XNOR and XOR?",
+    c: ["XNOR is true when inputs are the same, XOR is true when inputs are different", "XOR is true when inputs are the same, XNOR is true when inputs are different", "XOR always gives true output", "XNOR always gives false output"],
+    a: 0,
+  },
+  {
+    q: "A linker is used to:",
+    c: ["Compile a single executable file", "Convert assembly code", "Debug a program", "Run interpreted languages"],
+    a: 0, // A linker combines object files into a single executable file.
+  },
+  {
+    q: "Abacus can be dated back to:",
+    c: ["100 BC", "500 BC", "300 BC", "700 BC"],
+    a: 1, // 500 BC is a commonly cited time for the Chinese abacus (suanpan).
+  },
+  {
+    q: "Which gate produces a true output when both inputs are either true or false?",
+    c: ["XOR", "XNOR", "OR", "NAND"],
+    a: 1,
+  },
+  {
+    q: "OR gate is represented as:",
+    c: ["A • B", "A''", "A + B", "A / B"],
+    a: 2,
+  },
+  {
+    q: "Augusta Ada earned her spot in history as ?",
+    c: ["The first computer programmer", "The inventor of COBOL", "The creator of Microsoft", "The developer of FORTRAN"],
+    a: 0,
+  },
+  {
+    q: "What is used to translate one high-level language (HLL) to another HLL all at once?",
+    c: ["Interpreter", "Compiler", "Assembler", "Preprocessor"],
+    a: 1, // A *compiler* translates the entire source code (HLL) to the target code (often ML, but can be another HLL). The context is "all at once".
+  },
+  {
+    q: "What operation is carried out when the inputs are both true/false and they give an output of 1?",
+    c: ["NOR", "XNOR", "NAND", "OR"],
+    a: 1, // This is the definition of XNOR (Equivalence).
+  },
+  {
+    q: "Who invented the Pascaline?",
+    c: ["Charles Babbage", "Alan Turing", "Blaise Pascal", "John von Neumann"],
+    a: 2,
+  },
+  {
+    q: "What is the function of an assembler?",
+    c: ["Converts assembly code to machine code", "Converts HLL to assembly", "Translates one HLL to another", "Executes machine instructions"],
+    a: 0,
+  },
+  {
+    q: "Who invented the first mechanical calculator?",
+    c: ["Charles Babbage", "Howard Aiken", "Blaise Pascal", "John von Neumann"],
+    a: 2,
+  },
+  {
+    q: "Which of the following is true for an XNOR gate?",
+    c: ["The output is true if the inputs are the same", "The output is false if the inputs are different", "The output is false if the inputs are the same", "The output is true if the inputs are different"],
+    a: 0,
+  },
+  {
+    q: "When the input is 1 in a NOT gate, what will be its output?",
+    c: ["1", "0", "Undefined", "Error"],
+    a: 1,
+  },
+  {
+    q: "Jacquard’s loom was based on:",
+    c: ["Punched Cards", "Magnetic Tape", "Vacuum Tubes", "Integrated Circuits"],
+    a: 0,
+  },
+  {
+    q: "What is the function of a benchmark?",
+    c: ["Measuring a system’s performance", "Debugging software", "Compiling code", "Encrypting data"],
+    a: 0,
+  },
+  {
+    q: "A program used to sort can be classified as a:",
+    c: ["Operating System", "Utility Program", "Application Software", "System Software"],
+    a: 1, // Sorting is a maintenance task, often handled by a utility program.
+  },
+  {
+    q: "Which of the following is true when both inputs are either true or false?",
+    c: ["AND", "OR", "XOR", "XNOR"],
+    a: 3,
+  },
+  {
+    q: "Which software serves as an interface between hardware and users?",
+    c: ["System Software", "None of the Above", "Application Software", "Utility Software"],
+    a: 0, // Specifically, the Operating System, which is a type of System Software.
+  },
+  {
+    q: "Which of the following serves as an interface between hardware and the end-user?",
+    c: ["System Software", "Application Software", "None of the Above", "Middleware"],
+    a: 0,
+  },
+  {
+    q: "Programs for word processing and graphics editing are categorized as:",
+    c: ["System Software", "Application Package", "Operating System", "Utility Software"],
+    a: 1,
+  },
+  {
+    q: "A person that provides computerization procedures is called a:",
+    c: ["Software Developer", "System Analyst", "Programmer", "Data Processing Manager"],
+    a: 1, // System Analyst is the best fit for *providing* procedures/solutions.
+  },
+  {
+    q: "Which of the following comprises the NOR Gate?",
+    c: ["OR Gate followed by AND", "NOT Gate followed by OR", "OR Gate followed by NOT", "AND Gate followed by OR"],
+    a: 2,
+  },
+  {
+    q: "De Morgan’s Law is used for:",
+    c: ["Simplifying Logic Expressions", "Defining Truth Tables", "Writing Algorithms", "Designing Circuit Boards"],
+    a: 0,
+  },
+  {
+    q: "Who was the first computer programmer?",
+    c: ["Augusta Ada Byron", "Grace Hopper", "Herman Hollerith", "Charles Babbage"],
+    a: 0,
+  },
+  {
+    q: "The human fingers are represented by ______ on the abacus.",
+    c: ["The Upper and Lower Beads", "The Upper Beads", "The Lower Beads", "The Frame"],
+    a: 2, // The lower beads (1-4) are commonly associated with the four fingers, and the upper bead (5) with the thumb. 'The Lower Beads' is the best simple answer.
+  },
+  {
+    q: "A cashier in a banking system is a:",
+    c: ["Data Entry Operator", "Programmer", "Analyst", "System Administrator"],
+    a: 0, // A cashier often enters data, making 'Data Entry Operator' the best fit among the options, or 'End User' (Q99).
+  },
+  {
+    q: "Which of the following is true for XNOR?",
+    c: ["XNOR is the inverse of XOR", "XOR is true when both inputs are the same", "XNOR is false when both inputs are the same", "XNOR is true when both inputs are the same"],
+    a: 3,
+  },
+  {
+    q: "Setting up a payroll uses what type of software?",
+    c: ["Utility Software", "User Application Software", "System Software", "Application Software"],
+    a: 3, // Payroll software is a specific business application.
+  },
+  {
+    q: "Which operator represents a NOT gate?",
+    c: ["Unary", "Binary", "Ternary", "Denary"],
+    a: 0, // NOT is a Unary operation (one input).
+  },
+  {
+    q: "The CPU is responsible for:",
+    c: ["Processing Data", "Displaying Graphics", "Storing Files", "Managing Networks"],
+    a: 0,
+  },
+  {
+    q: "________ form an interface between computer hardware and the user.",
+    c: ["Operating Systems", "Programming Languages", "Network Devices", "Input Devices"],
+    a: 0,
+  },
+  {
+    q: "A cashier in a bank is an example of:",
+    c: ["Programmer", "End User", "System Analyst", "Database Manager"],
+    a: 1,
+  },
+  {
+    q: "What is the function of an operating system?",
+    c: ["Managing Hardware and Software Resources", "Writing Code", "Designing Web Pages", "Connecting to the Internet"],
+    a: 0,
+  },
+  {
+    q: "Who invented the first calculating machine?",
+    c: ["Blaise Pascal", "Charles Babbage", "John von Neumann", "Alan Turing"],
+    a: 0,
+  },
+  {
+    q: "Is DBMS system software or application software?",
+    c: ["System Software", "Application Software", "Both A and B", "Neither A nor B"],
+    a: 2, // DBMS is often categorized as System Software or a complex Application Software, sometimes both. Given the choices, 'Both' is the most accommodating.
+  },
+  {
+    q: "What is the use of logical operations?",
+    c: ["Making Decisions in Programming", "Displaying Graphical Output", "Sorting Data", "Storing Files"],
+    a: 0,
+  },
+  {
+    q: "The number of inputs in a Boolean function is determined by the formula:",
+    c: ["2^n", "2^3", "n^2", "log(n)"],
+    a: 0, // This formula ($2^n$) determines the number of *rows* in a truth table for $n$ variables, which indirectly relates to the inputs. Corrected the options.
+  },
+  {
+    q: "The XOR gate outputs true when:",
+    c: ["Both inputs are the same", "Both inputs are different", "One input is true", "One input is false"],
+    a: 1,
+  },
+  {
+    q: "The OR function is written as:",
+    c: ["X + Y", "X * Y", "X ⊕ Y", "X'"],
+    a: 0},
+       {
+    q: "Boolean algebra can be used for:",
+    c: ["Simplifying logic circuits", "Solving complex equations", "Solving polynomials", "Factorizing quadratic equations"],
+    a: 0,
+  },
+  {
+    q: "Which logic gate gives a true output when both inputs are either true or false?",
+    c: ["AND", "OR", "XOR", "XNOR"],
+    a: 3,
+  },
+  {
+    q: "Which of the following is an application package?",
+    c: ["Graphics Package", "Operating System", "Utility Program", "Language Translators"],
+    a: 0,
+  },
+  {
+    q: "A computer can be considered as:",
+    c: ["Electronic Device", "Mechanical Device", "Analog Device", "None of the Above"],
+    a: 0,
+  },
+  {
+    q: "Which type of punched cards were used in Jacquard’s loom?",
+    c: ["Glass Punched Cards", "Wooden Punched Cards", "Plastic Punched Cards", "Metal Punched Cards"],
+    a: 1, // Jacquard's original cards were typically thick card/cardboard, but 'Wooden' is a common historical simplification/misunderstanding, which is the closest match to the common 'punched cards' used in early machines from the options given here and Q31.
+  },
+  {
+    q: "The hardware components of a computer comprise:",
+    c: ["CPU and Humanware", "CPU and Peripherals", "Storage Devices and Peripherals", "Motherboard and Software"],
+    a: 1, // CPU and peripherals (Input, Output, Storage) are the main components.
+  },
+  {
+    q: "Which logic gate outputs 1 only when both inputs are false?",
+    c: ["XOR", "AND", "NAND", "NOR"],
+    a: 3,
+  },
+  {
+    q: "In Boolean algebra, 1 represents:",
+    c: ["False", "Off", "On", "None of the Above"],
+    a: 2,
+  },
+  {
+    q: "A cashier working with a bank information system is an example of a:",
+    c: ["System Analyst", "Programmer", "End User", "Data Operator"],
+    a: 2,
+  },
+  {
+    q: "A computer program used to combine organized files is called a:",
+    c: ["File Manager", "Database Manager", "File Compiler", "Data Integrator"],
+    a: 0, // A File Manager handles file organization and can be used to combine files.
+  },
+  {
+    q: "The operating system is part of the:",
+    c: ["Application Package", "System Software", "Benchmark Program", "Utility Software"],
+    a: 1,
+  },
+  {
+    q: "A benchmark program is used to:",
+    c: ["Measure system performance", "Debug software", "Translate programs", "Manage databases"],
+    a: 0,
+  },
+  {
+    q: "A computer program created to solve simultaneous equations is considered:",
+    c: ["System Software", "Utility Package", "Application Software", "Translators"],
+    a: 2, // Specific task-based software is Application Software.
+  },
+  {
+    q: "Who wrote the first computer program?",
+    c: ["Augusta Ada Byron", "Charles Babbage", "Alan Turing", "John von Neumann"],
+    a: 0,
+  },
+  {
+    q: "Which of the following software is used for statistical analysis?",
+    c: ["SQL", "SPSS", "Excel", "MATLAB"],
+    a: 1,
+  },
+  {
+    q: "Which part of the computer controls all processing?",
+    c: ["ALU", "Hardware", "Control Unit", "Peripheral"],
+    a: 2, // The Control Unit (CU) within the CPU is responsible for controlling/coordinating operations.
+  },
+  {
+    q: "Which language translator translates HLL to ML equivalent all at once?",
+    c: ["Compiler", "Interpreter", "Preprocessor", "Debugger"],
+    a: 0,
+  }
+];
+       
+       
+       function shareOnWhatsApp() {
+        const message = "https://https://readoneab25.github.io/Bio-101-ecology-cell/";
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = "whatsapp://send?text=" + encodedMessage;
+        window.open(whatsappUrl, '_blank');
+    }
+    
+   
+       
+    let state = { idx:0, answers: Array(QUESTIONS.length).fill(null) };
+const total = QUESTIONS.length;
+
+function renderQuestion(){
+  const area = document.getElementById('q-area');
+  const q = QUESTIONS[state.idx];
+  document.getElementById('q-num').textContent = state.idx+1;
+  document.getElementById('q-total').textContent = total;
+  const progress = Math.round((state.idx/total)*100);
+  document.getElementById('progress-bar').style.width = progress + '%';
+
+  area.innerHTML = '';
+  const qEl = document.createElement('div');
+  qEl.innerHTML = `<div class="question">${state.idx+1}. ${q.q}</div>`;
+  const choices = document.createElement('div'); choices.className='choices';
+  q.c.forEach((choice, i)=>{
+    const btn = document.createElement('div');
+    btn.className='choice'; btn.tabIndex=0; btn.textContent = String.fromCharCode(65+i)+'. '+choice;
+    if(state.answers[state.idx]===i) btn.classList.add('selected');
+    btn.addEventListener('click', ()=>{
+      // select
+      state.answers[state.idx]=i;
+      document.querySelectorAll('.choice').forEach(el=>el.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+    choices.appendChild(btn);
+  });
+  qEl.appendChild(choices);
+  area.appendChild(qEl);
+}
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  if(state.idx < total-1) state.idx++;
+  renderQuestion();
+});
+
+document.getElementById('prevBtn').addEventListener('click', ()=>{
+  if(state.idx > 0) state.idx--;
+  renderQuestion();
+});
+
+document.getElementById('submitBtn').addEventListener('click', ()=>{
+  // confirm and grade
+  const unanswered = state.answers.filter(a=>a===null).length;
+  if(unanswered>0){
+    if(!confirm(`You have ${unanswered} unanswered questions. Submit anyway?`)) return;
+  }
+  gradeQuiz();
+});
+
+function gradeQuiz(){
+  let correct=0;
+  const review = [];
+  for(let i=0;i<total;i++){
+    const user = state.answers[i];
+    const correctIdx = QUESTIONS[i].a;
+    const ok = user===correctIdx;
+    if(ok) correct++;
+    review.push({i, q:QUESTIONS[i].q, choices:QUESTIONS[i].c, user, correctIdx, ok});
+  }
+  showResult(correct, review);
+}
+
+function showResult(score, review){
+  document.getElementById('quiz-card').style.display='none';
+  const area = document.getElementById('result-area');
+  area.style.display='block';
+  const title = document.getElementById('score-title');
+  title.textContent = `You scored ${score} out of ${total}`;
+  const pct = Math.round((score/total)*100);
+  document.getElementById('score-summary').textContent = `Percentage: ${pct}%`;
+
+  const list = document.getElementById('review-list'); list.innerHTML='';
+  review.forEach(item=>{
+    const div = document.createElement('div'); div.className='q-review';
+    const head = document.createElement('div'); head.style.fontWeight='700'; head.textContent = `${item.i+1}. ${item.q}`;
+    const userAns = document.createElement('div'); userAns.style.marginTop='6px';
+    const ua = item.user===null? 'No answer' : String.fromCharCode(65+item.user)+'. '+item.choices[item.user];
+    const ca = String.fromCharCode(65+item.correctIdx)+'. '+item.choices[item.correctIdx];
+    userAns.innerHTML = `<div><strong>Your answer:</strong> ${ua}</div><div style="margin-top:4px"><strong>Correct answer:</strong> ${ca}</div>`;
+    if(item.ok) userAns.style.color='lightgreen'; else userAns.style.color='#fca5a5';
+    div.appendChild(head); div.appendChild(userAns);
+    list.appendChild(div);
+  });
+}
+
+document.getElementById('retryBtn').addEventListener('click', ()=>{
+  // reset
+  state = { idx:0, answers: Array(total).fill(null) };
+  document.getElementById('result-area').style.display='none';
+  document.getElementById('quiz-card').style.display='block';
+  renderQuestion();
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const data = {answers: state.answers, questions: QUESTIONS};
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'cos101_module1-2_results.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+// init
+renderQuestion();
+</script>
+
+
+</body>
+</html
